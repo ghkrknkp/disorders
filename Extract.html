@@ -1,0 +1,50 @@
+ExtractText.html
+
+<input type="file" id="uploadFile" accept="image/*, .pdf">
+<button onclick="processFile()">Extract Text</button>
+<div id="outputText" style="font-family: 'Trebuchet MS', sans-serif; font-size: 18px; line-height: 1.5; background-color: #f7f7f7; padding: 10px; border-radius: 5px; margin-top: 10px; padding: 15px;"></div>
+
+<!-- Include Tesseract.js for OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4"></script>
+
+<script>
+function processFile() {
+    var file = document.getElementById("uploadFile").files[0];
+    if (!file) {
+        alert("Please upload a file first!");
+        return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        var imageData = event.target.result;
+
+        // Use Tesseract.js with advanced settings for better accuracy
+        Tesseract.recognize(
+            imageData, 
+            'eng', // Language: English
+            {
+                logger: m => console.log(m), // Logs progress
+                tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?;:-'\"() ", // Only valid characters
+                psm: 6 // Page Segmentation Mode (6 = Assume a single uniform block of text)
+            }
+        ).then(({ data: { text } }) => {
+            document.getElementById("outputText").innerHTML = formatForDyslexia(text);
+        }).catch(error => {
+            console.error("OCR Error:", error);
+            alert("Failed to extract text. Try another image.");
+        });
+    };
+
+    reader.readAsDataURL(file);
+}
+
+// Function to Format Text for Dyslexic-Friendly Display
+function formatForDyslexia(text) {
+    let formattedText = text
+        .replace(/\n/g, "<br>") // Preserve line breaks
+        .replace(/\b([A-Za-z]{6,})\b/g, '<b>$1</b>'); // Bold words longer than 6 letters
+    
+    return formattedText;
+}
+</script>

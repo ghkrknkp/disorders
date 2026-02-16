@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gamified Learning Games</title>
+  <style>
+    /* NEW UI/UX COLOR SCHEME */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #36d1dc, #5b86e5);
+      min-height: 100vh;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.9);
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+    /* Title color changed */
+    h1 {
+      color: #ffae00;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .section {
+      display: none;
+      padding: 20px;
+    }
+    button {
+      background: linear-gradient(45deg, #36d1dc, #5b86e5);
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 10px;
+      font-weight: bold;
+      transition: opacity 0.2s ease;
+    }
+    button:hover {
+      opacity: 0.8;
+    }
+    input {
+      padding: 10px;
+      width: 80%;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    /* Memory Game board (now 4x4) */
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #ffebcd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .flipped {
+      background: #f4a261;
+    }
+    /* Tic Tac Toe styles */
+    .tic-tac-toe-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      max-width: 300px;
+      margin: 20px auto;
+    }
+    .cell {
+      width: 90px;
+      height: 90px;
+      background: #f9c74f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    /* Simon Says Game styles (unchanged) */
+    #simon-game {
+      background: #e8f5e9;
+      border: 2px solid #43a047;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .simon-board {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-width: 220px;
+      margin: 20px auto;
+    }
+    .simon-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 10px;
+      cursor: pointer;
+      opacity: 0.9;
+      transition: opacity 0.2s ease;
+    }
+    .simon-btn:hover {
+      opacity: 1;
+    }
+    #btn-green { background: #66bb6a; }
+    #btn-red { background: #ef5350; }
+    #btn-yellow { background: #ffee58; }
+    #btn-blue { background: #42a5f5; }
+    #simon-message {
+      font-size: 20px;
+      margin-top: 10px;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gamified Learning Games 🎮</h1>
+
+    <button onclick="showSection('math-quiz')">Math Quiz</button>
+    <button onclick="showSection('memory-game')">Memory Game</button>
+    <button onclick="showSection('guess-game')">Guess the Number</button>
+    <button onclick="showSection('tic-tac-toe')">Tic Tac Toe</button>
+    <button onclick="showSection('simon-game')">Simon Says</button>
+
+    <!-- Math Quiz Game (scoring removed, invalid input handled) -->
+    <div id="math-quiz" class="section">
+      <h2>Math Quiz Game ✨</h2>
+      <p id="question">Loading question...</p>
+      <input type="number" id="math-answer" placeholder="Enter your answer">
+      <button onclick="checkMathAnswer()">Submit</button>
+      <p id="math-feedback"></p>
+      <button onclick="generateMathQuestion()">Next Question</button>
+    </div>
+
+    <!-- Memory Game (4x4 grid; restart button; win indication) -->
+    <div id="memory-game" class="section">
+      <h2>Memory Card Matching 🃏</h2>
+      <div id="memory-board" class="game-board"></div>
+      <p id="memory-message"></p>
+      <button onclick="initMemoryGame()">Restart Memory Game</button>
+    </div>
+
+    <!-- Guess the Number Game (restart button) -->
+    <div id="guess-game" class="section">
+      <h2>Guess the Number 🎯</h2>
+      <p>Pick a number between 1 and 20.</p>
+      <input type="number" id="guess" placeholder="Enter a number">
+      <button onclick="checkGuess()">Submit</button>
+      <p id="guess-hint"></p>
+      <button onclick="resetGuessGame()">Restart Guess Game</button>
+    </div>
+
+    <!-- Tic Tac Toe Game (player vs computer) -->
+    <div id="tic-tac-toe" class="section">
+      <h2>Tic Tac Toe ♟️ (You vs Computer)</h2>
+      <div class="tic-tac-toe-board" id="ttt-board"></div>
+      <p id="ttt-message"></p>
+      <button onclick="resetTicTacToe()">Restart Game</button>
+    </div>
+
+    <!-- Simon Says Game (unchanged) -->
+    <div id="simon-game" class="section">
+      <h2>Simon Says 🎵</h2>
+      <div class="simon-board">
+        <div class="simon-btn" id="btn-green" onclick="playerSimonClick('green')"></div>
+        <div class="simon-btn" id="btn-red" onclick="playerSimonClick('red')"></div>
+        <div class="simon-btn" id="btn-yellow" onclick="playerSimonClick('yellow')"></div>
+        <div class="simon-btn" id="btn-blue" onclick="playerSimonClick('blue')"></div>
+      </div>
+      <p id="simon-message">Press "Start" to begin!</p>
+      <button onclick="startSimonGame()">Start Game</button>
+    </div>
+  </div>
+
+  <script>
+    // Show/hide sections
+    function showSection(sectionId) {
+      document.querySelectorAll(".section").forEach(section => {
+        section.style.display = "none";
+      });
+      document.getElementById(sectionId).style.display = "block";
+      // For Memory Game, reinitialize if needed
+      if(sectionId === "memory-game") {
+        initMemoryGame();
+      }
+      // For Tic Tac Toe, reinitialize board
+      if(sectionId === "tic-tac-toe") {
+        initTicTacToe();
+      }
+    }
+
+    // ============================
+    // Math Quiz Logic (score removed)
+    let num1, num2, correctAnswer;
+    function generateMathQuestion() {
+      num1 = Math.floor(Math.random() * 10) + 1;
+      num2 = Math.floor(Math.random() * 10) + 1;
+      correctAnswer = num1 + num2;
+      document.getElementById("question").innerText = `What is ${num1} + ${num2}?`;
+      document.getElementById("math-answer").value = "";
+      document.getElementById("math-feedback").innerText = "";
+    }
+    function checkMathAnswer() {
+      let userAnswer = parseInt(document.getElementById("math-answer").value);
+      let feedback = document.getElementById("math-feedback");
+      if (isNaN(userAnswer)) {
+        feedback.innerText = "Please enter a valid number.";
+        feedback.style.color = "red";
+      } else if (userAnswer === correctAnswer) {
+        feedback.innerText = "Correct! 🎉";
+        feedback.style.color = "green";
+      } else {
+        feedback.innerText = "Wrong! ❌ Try again.";
+        feedback.style.color = "red";
+      }
+    }
+    generateMathQuestion();
+
+    // ============================
+    // Memory Game Logic (4x4 grid)
+    let memoryValues = []; // Will hold 16 shuffled values
+    let flippedCards = [];
+    let matchedPairs = 0;
+    function initMemoryGame() {
+      // Create an array of 8 unique letters, duplicate them to get 16 cards
+      const values = ["A", "B", "C", "D", "E", "F", "G", "H"];
+      memoryValues = values.concat(values);
+      // Shuffle the array
+      memoryValues.sort(() => 0.5 - Math.random());
+      // Generate 16 card divs inside the memory board
+      const board = document.getElementById("memory-board");
+      board.innerHTML = "";
+      for (let i = 0; i < memoryValues.length; i++) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.setAttribute("data-value", memoryValues[i]);
+        card.innerText = "?";
+        card.onclick = function() { flipCard(this); };
+        board.appendChild(card);
+      }
+      flippedCards = [];
+      matchedPairs = 0;
+      document.getElementById("memory-message").innerText = "";
+    }
+    function flipCard(card) {
+      if (flippedCards.length < 2 && !card.classList.contains("flipped")) {
+        card.innerText = card.getAttribute("data-value");
+        card.classList.add("flipped");
+        flippedCards.push(card);
+        if (flippedCards.length === 2) {
+          setTimeout(checkMatch, 1000);
+        }
+      }
+    }
+    function checkMatch() {
+      if (flippedCards[0].innerText === flippedCards[1].innerText) {
+        matchedPairs++;
+        flippedCards = [];
+        if (matchedPairs === 8) {
+          document.getElementById("memory-message").innerText = "You Won! 🎉";
+          document.getElementById("memory-message").style.color = "green";
+        }
+      } else {
+        flippedCards.forEach(card => {
+          card.innerText = "?";
+          card.classList.remove("flipped");
+        });
+        flippedCards = [];
+      }
+    }
+
+    // ============================
+    // Guess the Number Game Logic
+    let randomNumber = Math.floor(Math.random() * 20) + 1;
+    function checkGuess() {
+      let guess = parseInt(document.getElementById("guess").value);
+      let hint = document.getElementById("guess-hint");
+      if (guess === randomNumber) {
+        hint.innerText = "Correct! 🎉 You Win!";
+        hint.style.color = "green";
+      } else if (guess > randomNumber) {
+        hint.innerText = "Too high! Try again. ⬇️";
+        hint.style.color = "black";
+      } else {
+        hint.innerText = "Too low! Try again. ⬆️";
+        hint.style.color = "black";
+      }
+    }
+    function resetGuessGame() {
+      randomNumber = Math.floor(Math.random() * 20) + 1;
+      document.getElementById("guess").value = "";
+      document.getElementById("guess-hint").innerText = "";
+      document.getElementById("guess-hint").style.color = "black";
+    }
+
+    // ============================
+    // Tic Tac Toe Game Logic (Player vs Computer)
+    let tttBoard = Array(9).fill("");
+    // In this version, player is "X", computer is "O"
+    let gameActive = true;
+    function initTicTacToe() {
+      tttBoard = Array(9).fill("");
+      gameActive = true;
+      currentPlayer = "X"; // always start with player
+      document.getElementById("ttt-message").innerText = "Your turn (X)";
+      const board = document.getElementById("ttt-board");
+      board.innerHTML = "";
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.setAttribute("data-index", i);
+        cell.onclick = function() { playerMove(this, i); };
+        board.appendChild(cell);
+      }
+    }
+    function playerMove(cell, index) {
+      if (gameActive && tttBoard[index] === "") {
+        tttBoard[index] = "X";
+        cell.innerText = "X";
+        if (checkWinner("X")) {
+          document.getElementById("ttt-message").innerText = "You win!";
+          gameActive = false;
+        } else if (!tttBoard.includes("")) {
+          document.getElementById("ttt-message").innerText = "It's a draw!";
+          gameActive = false;
+        } else {
+          document.getElementById("ttt-message").innerText = "Computer's turn...";
+          setTimeout(computerMove, 500);
+        }
+      }
+    }
+    function computerMove() {
+      // Find all empty cells
+      let emptyIndices = [];
+      for (let i = 0; i < tttBoard.length; i++) {
+        if (tttBoard[i] === "") {
+          emptyIndices.push(i);
+        }
+      }
+      if (emptyIndices.length === 0) return;
+      // Pick a random empty cell
+      let randomIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      tttBoard[randomIndex] = "O";
+      // Update the cell in UI
+      document.querySelectorAll(".cell")[randomIndex].innerText = "O";
+      if (checkWinner("O")) {
+        document.getElementById("ttt-message").innerText = "Computer wins!";
+        gameActive = false;
+      } else if (!tttBoard.includes("")) {
+        document.getElementById("ttt-message").innerText = "It's a draw!";
+        gameActive = false;
+      } else {
+        document.getElementById("ttt-message").innerText = "Your turn (X)";
+      }
+    }
+    function checkWinner(player) {
+      const winConditions = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      return winConditions.some(condition => condition.every(idx => tttBoard[idx] === player));
+    }
+    function resetTicTacToe() {
+      initTicTacToe();
+    }
+    // Initialize Tic Tac Toe board on load
+    initTicTacToe();
+
+    // ============================
+    // Simon Says Game Logic (unchanged)
+    let simonSequence = [];
+    let playerSequence = [];
+    let simonColors = ["green", "red", "yellow", "blue"];
+    let simonPlaying = false;
+    function startSimonGame() {
+      simonSequence = [];
+      playerSequence = [];
+      document.getElementById("simon-message").innerText = "Watch the sequence...";
+      nextSimonRound();
+    }
+    function nextSimonRound() {
+      playerSequence = [];
+      let randomColor = simonColors[Math.floor(Math.random() * simonColors.length)];
+      simonSequence.push(randomColor);
+      flashSimonSequence(0);
+    }
+    function flashSimonSequence(index) {
+      if (index < simonSequence.length) {
+        let color = simonSequence[index];
+        let btn = document.getElementById("btn-" + color);
+        btn.style.opacity = "0.3";
+        setTimeout(() => {
+          btn.style.opacity = "0.9";
+          setTimeout(() => {
+            flashSimonSequence(index + 1);
+          }, 300);
+        }, 600);
+      } else {
+        document.getElementById("simon-message").innerText = "Your turn!";
+        simonPlaying = true;
+      }
+    }
+    function playerSimonClick(color) {
+      if (!simonPlaying) return;
+      playerSequence.push(color);
+      let btn = document.getElementById("btn-" + color);
+      btn.style.opacity = "0.3";
+      setTimeout(() => { btn.style.opacity = "0.9"; }, 200);
+      let currentIndex = playerSequence.length - 1;
+      if (playerSequence[currentIndex] !== simonSequence[currentIndex]) {
+        document.getElementById("simon-message").innerText = "Wrong sequence! Game Over.";
+        simonPlaying = false;
+        return;
+      }
+      if (playerSequence.length === simonSequence.length) {
+        document.getElementById("simon-message").innerText = "Good job! Next round...";
+        simonPlaying = false;
+        setTimeout(nextSimonRound, 1000);
+      }
+    }
+  </script>
+</body>
+</html>

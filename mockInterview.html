@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Interview Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .chat-container {
+            width: 400px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px;
+            max-width: 80%;
+        }
+        .bot {
+            background: #007bff;
+            color: white;
+            align-self: flex-start;
+        }
+        .user {
+            background: #28a745;
+            color: white;
+            align-self: flex-end;
+        }
+        .input-box {
+            display: flex;
+            padding: 10px;
+            background: #eee;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-box">
+            <input type="text" id="userInput" placeholder="Type your answer...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            "Tell me about yourself.",
+            "Why do you want this job?",
+            "What are your strengths and weaknesses?",
+            "Where do you see yourself in 5 years?",
+            "Do you have any questions for us?"
+        ];
+
+        const feedback = [
+            "Try to summarize concisely.",
+            "Focus on how you align with the company.",
+            "Highlight strengths relevant to the role.",
+            "Show ambition with realistic goals.",
+            "Asking about growth opportunities is a good approach."
+        ];
+
+        let currentQuestion = 0;
+
+        function addMessage(text, sender) {
+            const chatBox = document.getElementById("chatBox");
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message", sender);
+            msgDiv.innerText = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById("userInput");
+            const userText = userInput.value.trim();
+            if (userText === "") return;
+            addMessage(userText, "user");
+            userInput.value = "";
+            setTimeout(() => giveFeedback(userText), 1000);
+        }
+
+        function giveFeedback(answer) {
+            addMessage(feedback[currentQuestion], "bot");
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                setTimeout(() => addMessage(questions[currentQuestion], "bot"), 2000);
+            } else {
+                setTimeout(() => addMessage("Your interview is complete! Review your feedback.", "bot"), 2000);
+            }
+        }
+
+        window.onload = function() {
+            addMessage("Hello! I am your HR interviewer. Let's start!", "bot");
+            setTimeout(() => addMessage(questions[currentQuestion], "bot"), 1000);
+        }
+    </script>
+</body>
+</html>

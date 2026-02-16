@@ -1,0 +1,13 @@
+API.txt
+
+Hugging face:-
+
+Assessment- MODEL_URL = "https://api-inference.huggingface.co/models/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli"
+Feynman Technique- MODEL_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+
+Responsive Voice:-
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=p8hhSeek"></script>
+
+ChatBot(HTML Embed code):-
+<script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
+<script src="https://files.bpcontent.cloud/2025/03/16/19/20250316190910-THV6I6QE.js"></script>

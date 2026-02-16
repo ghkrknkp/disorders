@@ -1,0 +1,175 @@
+pomodoro.html
+
+<style>
+    /* Pomodoro Section Styling */
+    #pomodoro-section {
+        text-align: center;
+        padding: 30px;
+        max-width: 600px;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Section Title */
+    #pomodoro-section h2 {
+        font-size: 26px;
+        color: #2c3e50;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    /* Info Text */
+    #pomodoro-section p {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    /* Show Timer Button */
+    #show-timer-btn {
+        padding: 12px 25px;
+        font-size: 18px;
+        font-weight: bold;
+        border: none;
+        background: linear-gradient(135deg, #ff8c00, #ff5e00);
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0px 5px 15px rgba(255, 94, 0, 0.4);
+        transition: 0.3s ease-in-out;
+    }
+
+    #show-timer-btn:hover {
+        background: linear-gradient(135deg, #ff6b00, #ff4500);
+        transform: scale(1.05);
+    }
+
+    /* Timer Box (Hidden Initially) */
+    #timer-container {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    /* Timer Display */
+    #timer {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: #e74c3c;
+        margin: 15px 0;
+    }
+
+    /* Timer Buttons */
+    .timer-buttons button {
+        padding: 12px 25px;
+        font-size: 18px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin: 10px;
+        transition: 0.3s;
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Start Button */
+    #start-btn {
+        background: linear-gradient(135deg, #27ae60, #1e8449);
+        color: white;
+    }
+
+    #start-btn:hover {
+        background: linear-gradient(135deg, #219150, #166634);
+        transform: scale(1.05);
+    }
+
+    /* Reset Button */
+    #reset-btn {
+        background: linear-gradient(135deg, #c0392b, #a93226);
+        color: white;
+    }
+
+    #reset-btn:hover {
+        background: linear-gradient(135deg, #a93226, #922b21);
+        transform: scale(1.05);
+    }
+
+    /* Fade In Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+</style>
+
+<!-- Pomodoro Timer Section -->
+<section id="pomodoro-section">
+    <h2>Learning Techniques</h2>
+    <p>Boost your focus and productivity with the Pomodoro technique! ⏳</p>
+    
+    <!-- Button to Show Timer -->
+    <button id="show-timer-btn" onclick="showTimer()">Start Pomodoro Timer</button>
+    
+    <!-- Timer Box (Initially Hidden) -->
+    <div id="timer-container">
+        <p id="timer">25:00</p>
+        <div class="timer-buttons">
+            <button id="start-btn" onclick="startPomodoro()">Start</button>
+            <button id="reset-btn" onclick="resetPomodoro()">Reset</button>
+        </div>
+    </div>
+</section>
+
+<script>
+    let timeLeft = 1500, timerRunning = false, timer;
+
+    function showTimer() {
+        document.getElementById("show-timer-btn").style.display = "none";
+        document.getElementById("timer-container").style.display = "block";
+    }
+
+    function updateTimer() {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        document.getElementById("timer").innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
+    function startPomodoro() {
+        if (!timerRunning) {
+            timerRunning = true;
+            document.getElementById("start-btn").innerText = "Pause";
+            timer = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimer();
+                } else {
+                    clearInterval(timer);
+                    alert("Time's up! Take a break.");
+                    timerRunning = false;
+                    document.getElementById("start-btn").innerText = "Start";
+                }
+            }, 1000);
+        } else {
+            clearInterval(timer);
+            timerRunning = false;
+            document.getElementById("start-btn").innerText = "Start";
+        }
+    }
+
+    function resetPomodoro() {
+        clearInterval(timer);
+        timeLeft = 1500;
+        timerRunning = false;
+        updateTimer();
+        document.getElementById("start-btn").innerText = "Start";
+    }
+
+    updateTimer();
+</script>

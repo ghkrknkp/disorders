@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Disorder Assessment</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 {
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        .question-container {
+            display: none;
+        }
+        .question-container.active {
+            display: block;
+        }
+        .question-container label.question-text {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .question-container input[type="radio"] {
+            display: none;
+        }
+        .question-container input[type="radio"] + label.option-label {
+            display: block;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #f9f9f9;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .question-container input[type="radio"]:checked + label.option-label {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .buttons button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #submitBtn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        #submitBtn:hover {
+            background: #0056b3;
+        }
+        .result-container {
+            display: none;
+        }
+        .result {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        .disclaimer {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Learning Disorder Assessment</h2>
+        <form id="assessmentForm">
+            <div id="questions"></div>
+            <div class="buttons">
+                <button type="button" id="prevButton" onclick="prevQuestion()">Previous</button>
+                <button type="button" id="nextButton" onclick="nextQuestion()" disabled>Next</button>
+            </div>
+            <button type="button" id="submitBtn" onclick="submitResponses()" style="display: none;">Submit</button>
+        </form>
+        <div id="resultContainer" class="result-container">
+            <h2>Your Assessment Results</h2>
+            <div id="result" class="result"></div>
+            <div id="confidence" class="confidence"></div>
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This test can help recognize potential symptoms, but a professional evaluation is necessary for an accurate diagnosis. This is not an official diagnosis.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replace with your OpenAI API Key
+        const apiKey = "";
+
+        // New questions array with updated texts, categories, and options.
+        // Scoring: Option A = 4, B = 3, C = 2, D = 1, E = 0.
+        const questions = [
+            // Autism (ASD) – 5 Questions
+            {
+                text: "1. Do you find it difficult to interpret facial expressions or body language?",
+                category: "Autism",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "2. How do you feel about social interactions?",
+                category: "Autism",
+                options: [
+                    { label: "Overwhelming and exhausting", value: 4 },
+                    { label: "Confusing but manageable", value: 3 },
+                    { label: "Neutral", value: 2 },
+                    { label: "Enjoyable with familiar people", value: 1 },
+                    { label: "Always enjoyable", value: 0 }
+                ]
+            },
+            {
+                text: "3. Do you prefer structured routines over spontaneous activities?",
+                category: "Autism",
+                options: [
+                    { label: "Strongly prefer routines", value: 4 },
+                    { label: "Prefer routines but can adapt", value: 3 },
+                    { label: "Neutral", value: 2 },
+                    { label: "Prefer spontaneity", value: 1 },
+                    { label: "Love spontaneous activities", value: 0 }
+                ]
+            },
+            {
+                text: "4. How sensitive are you to loud noises, bright lights, or strong smells?",
+                category: "Autism",
+                options: [
+                    { label: "Extremely sensitive", value: 4 },
+                    { label: "Very sensitive", value: 3 },
+                    { label: "Somewhat sensitive", value: 2 },
+                    { label: "Barely sensitive", value: 1 },
+                    { label: "Not sensitive at all", value: 0 }
+                ]
+            },
+            {
+                text: "5. How do you handle changes in plans?",
+                category: "Autism",
+                options: [
+                    { label: "Causes extreme distress", value: 4 },
+                    { label: "Very uncomfortable but manageable", value: 3 },
+                    { label: "Slightly uncomfortable but adapt", value: 2 },
+                    { label: "No strong feelings", value: 1 },
+                    { label: "I enjoy changes in plans", value: 0 }
+                ]
+            },
+            // ADHD – 5 Questions
+            {
+                text: "6. How often do you struggle to stay focused on tasks or conversations?",
+                category: "ADHD",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "7. Do you frequently start tasks but struggle to complete them?",
+                category: "ADHD",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "8. How well can you sit still for long periods without fidgeting or moving?",
+                category: "ADHD",
+                options: [
+                    { label: "Almost impossible", value: 4 },
+                    { label: "Very difficult", value: 3 },
+                    { label: "Manageable with effort", value: 2 },
+                    { label: "Not a problem", value: 1 },
+                    { label: "I can sit still easily", value: 0 }
+                ]
+            },
+            {
+                text: "9. How often do you find yourself acting impulsively (e.g., speaking before thinking, making quick decisions)?",
+                category: "ADHD",
+                options: [
+                    { label: "Very often", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Occasionally", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "10. Do you frequently misplace or forget things (e.g., keys, phone, appointments)?",
+                category: "ADHD",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            // Anxiety – 5 Questions
+            {
+                text: "11. How often do you feel excessive worry or fear about everyday situations?",
+                category: "Anxiety",
+                options: [
+                    { label: "All the time", value: 4 },
+                    { label: "Most of the time", value: 3 },
+                    { label: "Occasionally", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "12. How do you feel in social situations or when speaking in public?",
+                category: "Anxiety",
+                options: [
+                    { label: "Extremely anxious", value: 4 },
+                    { label: "Very anxious but manageable", value: 3 },
+                    { label: "Mildly anxious", value: 2 },
+                    { label: "Neutral", value: 1 },
+                    { label: "Comfortable and confident", value: 0 }
+                ]
+            },
+            {
+                text: "13. How often do you experience physical symptoms of anxiety (e.g., racing heart, sweating, nausea)?",
+                category: "Anxiety",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "14. How well can you handle unexpected challenges or stressful situations?",
+                category: "Anxiety",
+                options: [
+                    { label: "I shut down completely", value: 4 },
+                    { label: "I struggle significantly", value: 3 },
+                    { label: "I get nervous but manage", value: 2 },
+                    { label: "I handle it fairly well", value: 1 },
+                    { label: "I thrive under pressure", value: 0 }
+                ]
+            },
+            {
+                text: "15. Do you avoid situations because they make you feel nervous or anxious?",
+                category: "Anxiety",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            // Dyslexia – 5 Questions
+            {
+                text: "16. How often do you mix up letters or words when reading?",
+                category: "Dyslexia",
+                options: [
+                    { label: "Very often", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Occasionally", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "17. Do you find it difficult to follow written instructions?",
+                category: "Dyslexia",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            },
+            {
+                text: "18. How do you feel about reading aloud?",
+                category: "Dyslexia",
+                options: [
+                    { label: "Extremely difficult and stressful", value: 4 },
+                    { label: "Very difficult but manageable", value: 3 },
+                    { label: "Slightly uncomfortable", value: 2 },
+                    { label: "Neutral", value: 1 },
+                    { label: "Comfortable and confident", value: 0 }
+                ]
+            },
+            {
+                text: "19. How well can you remember information from what you read?",
+                category: "Dyslexia",
+                options: [
+                    { label: "Very poor retention", value: 4 },
+                    { label: "Difficult but manageable", value: 3 },
+                    { label: "Average", value: 2 },
+                    { label: "Fairly good", value: 1 },
+                    { label: "Excellent retention", value: 0 }
+                ]
+            },
+            {
+                text: "20. Do you find it easier to understand information through listening rather than reading?",
+                category: "Dyslexia",
+                options: [
+                    { label: "Always", value: 4 },
+                    { label: "Often", value: 3 },
+                    { label: "Sometimes", value: 2 },
+                    { label: "Rarely", value: 1 },
+                    { label: "Never", value: 0 }
+                ]
+            }
+        ];
+
+        const questionContainer = document.getElementById("questions");
+        let currentQuestionIndex = 0;
+
+        // Loop through each question and generate the HTML using the new options
+        questions.forEach((q, index) => {
+            const questionDiv = document.createElement("div");
+            questionDiv.classList.add("question-container");
+            if (index === 0) questionDiv.classList.add("active");
+
+            // Create question text
+            let html = `<div><label class="question-text">${q.text}</label><br></div>`;
+            
+            // Loop through options array to create radio inputs and their labels
+            q.options.forEach((option, i) => {
+                html += `<input type="radio" id="q${index}_opt${i}" name="q${index}" value="${option.value}">
+                         <label for="q${index}_opt${i}" class="option-label">${option.label}</label>`;
+            });
+
+            questionDiv.innerHTML = html;
+            questionContainer.appendChild(questionDiv);
+
+            // Enable the next button when an option is selected.
+            questionDiv.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.addEventListener('change', () => {
+                    if (index < questions.length - 1) {
+                        document.getElementById("nextButton").disabled = false;
+                    }
+                });
+            });
+        });
+
+        function showQuestion(index) {
+            document.querySelectorAll(".question-container").forEach((q, i) => {
+                q.classList.toggle("active", i === index);
+            });
+
+            if (index === questions.length - 1) {
+                document.getElementById("nextButton").disabled = true;
+                document.getElementById("submitBtn").style.display = "block";
+            } else {
+                const selectedOption = document.querySelector(`input[name="q${index}"]:checked`);
+                document.getElementById("nextButton").disabled = !selectedOption;
+                document.getElementById("submitBtn").style.display = "none";
+            }
+
+            document.getElementById("nextButton").style.display = "block";
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+
+        async function submitResponses() {
+            let responses = {
+                Autism: 0,
+                ADHD: 0,
+                Anxiety: 0,
+                Dyslexia: 0
+            };
+
+            questions.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selected) {
+                    responses[q.category] += parseInt(selected.value);
+                }
+            });
+
+            // Prepare the input for ChatGPT with an instruction to return diagnosis and confidence in JSON format.
+            const inputText = `Assessment scores:
+Autism: ${responses.Autism}/20
+ADHD: ${responses.ADHD}/20
+Anxiety: ${responses.Anxiety}/20
+Dyslexia: ${responses.Dyslexia}/20
+
+Based on the above scores, please provide one possible diagnosis from the following options: Autism, ADHD, Anxiety, Dyslexia, or No Symptoms. Also, include a confidence level as a percentage for your chosen diagnosis.
+Return only a valid JSON object in the following format:
+{"diagnosis": "Your Diagnosis", "confidence": "XX%"}
+Note: This assessment is for indicative purposes only and is not an official diagnosis.`;
+
+            try {
+                const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: [{
+                            role: "user",
+                            content: inputText
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                const resultText = data.choices[0].message.content;
+                let diagnosisResult;
+
+                try {
+                    diagnosisResult = JSON.parse(resultText);
+                    // Calculate the confidence as (returned confidence % of 65)
+                    let rawConfidence = diagnosisResult.confidence.trim();
+                    if (rawConfidence.endsWith("%")) {
+                        rawConfidence = rawConfidence.slice(0, -1);
+                    }
+                    let confidenceNum = parseFloat(rawConfidence);
+                    // Calculate the new confidence value as confidenceNum% of 65%
+                    let calculatedConfidence = Math.round((confidenceNum * 65) / 100);
+                    
+                    // Change label to "AI Analysis:" and update text if diagnosis is "No Symptoms"
+                    let analysisText = diagnosisResult.diagnosis.trim().toLowerCase() === "no symptoms" 
+                        ? "No Symptoms Found" 
+                        : diagnosisResult.diagnosis;
+                    document.getElementById("result").innerHTML = "AI Analysis: " + analysisText;
+                    document.getElementById("confidence").innerHTML = "Confidence level: " + calculatedConfidence + "%" +
+                        "<br><small>(Clinical relevance threshold: 65%)</small>";
+                } catch (e) {
+                    // If parsing fails, fallback to displaying the raw response.
+                    document.getElementById("result").innerHTML = "AI Analysis: " + resultText;
+                    document.getElementById("confidence").innerHTML = "";
+                }
+
+                document.getElementById("assessmentForm").style.display = "none";
+                document.getElementById("resultContainer").style.display = "block";
+
+            } catch (error) {
+                document.getElementById("result").innerHTML = `
+                    ${error.message}<br>
+                    <button onclick="location.reload()">Retry Assessment</button>
+                `;
+            }
+        }
+
+        showQuestion(currentQuestionIndex);
+    </script>
+</body>
+</html>
